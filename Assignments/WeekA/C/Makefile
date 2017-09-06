@@ -1,4 +1,4 @@
-HOME       := /Users/rvdg
+# HOME       := ~
 BLAS_LIB   := $(HOME)/blis/lib/libblis.a
 CBLAS_INC  := $(HOME)/blis/include/blis
 FLAME_LIB  := $(HOME)/flame/lib/libflame.a
@@ -19,6 +19,7 @@ NINC       := 500#     increment between sizes.
 
 LDFLAGS    := -lpthread -m64 -lm
 
+
 # indicate where the FLAME include files reside
 
 TEST_OBJS  := driver.o SymMatVec1.o SymMatVec2.o SymMatVec3.o
@@ -29,7 +30,7 @@ TEST_OBJS  := driver.o SymMatVec1.o SymMatVec2.o SymMatVec3.o
 #	$(FC) $(FFLAGS) -c $< -o $@
 
 driver.x: $(TEST_OBJS)  $(LAPACK_OBJS)
-	$(LINKER) $(TEST_OBJS) $(LAPACK_OBJS) $(LDFLAGS) $(FLAME_LIB) $(LAPACK_LIB) $(BLAS_LIB) -o driver.x
+	$(LINKER) $(TEST_OBJS) $(LAPACK_OBJS) $(FLAME_LIB) $(LAPACK_LIB) $(BLAS_LIB) -o driver.x $(LDFLAGS) 
 
 test:   driver.x
 	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver.x > output.m

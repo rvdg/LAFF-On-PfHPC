@@ -2,6 +2,9 @@
 #include <math.h>
 #include <time.h>
 
+double drand48(void);
+#define dabs( x ) ( (x) < 0 ? -(x) : x )
+		  
 #include "FLAME.h"
 
 #include "cblas.h"
