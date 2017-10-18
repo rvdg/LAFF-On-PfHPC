@@ -203,30 +203,31 @@ $ B := L B $ & Lower triangular matrix $ L $ &
 {\tt Trmm\_llnn( L, B )} &
  Robert vdG \\ \whline
 \multicolumn{4}{|l|}{Symmetric matrix-matrix multiplication} \\ \hline
-$ C := A B + C $ & $ A $ symmetric, stored in lower-triangular part &
-{\tt Symm\_ll( A, B, C )} & 
+$ C := A B + C $ & $ A $ symmetric, stored in lower-triangular part & 
+{\tt Symm\_ll( A, B, C )} & Ethan Lind, John Tunstall, Anika Gera
  \\ \hline
 $ C := A B + C $ & $ A $ symmetric, stored in upper-triangular part &
-{\tt Symm\_lu( A, B, C )} & 
+{\tt Symm\_lu( A, B, C )} &  Maria Salazar, Arathi Kumar
 \\ \hline
 $ C := B A + C $ & $ A $ symmetric, stored in lower-triangular part &
-{\tt Symm\_rl( A, B, C )} & 
+{\tt Symm\_rl( A, B, C )} & Jesus Romero, John Knoebel, Raul Camacho
 \\ \hline
 $ C := B A + C $ & $ A $ symmetric, stored in upper-triangular part &
-{\tt Symm\_ru( A, B, C )} & 
+{\tt Symm\_ru( A, B, C )} & Drew Poche, Vamsi Ponakala
  \\ \whline
 \multicolumn{4}{|l|}{Symmetric rank-k update} \\ \hline
 $ C := A A^T + C $ & $ C $ symmetric, stored in lower-triangular part &
-{\tt Syrk\_ln( A, C )} & 
+{\tt Syrk\_ln( A, C )} & Ayushi Sharma, Grace Simmons, Matthew Martinez
 \\ \hline
 $ C := A A^T + C $ & $ C $ symmetric, stored in upper-triangular part &
-{\tt Syrk\_ut( A, C )} &
+{\tt Syrk\_ut( A, C )} & Paras Arora, Ho-Jae Jung
 \\ \hline
 $ C := A^T A + C $ & $ C $ symmetric, stored in lower-triangular part &
-{\tt Syrk\_ln( A, C )} &
+{\tt Syrk\_ln( A, C )} & Laurence Zhang, Yvonne Huang, Cindy Truong
 \\ \hline
 $ C := A^T A + C $ & $ C $ symmetric, stored in upper-triangular part &
 {\tt Syrk\_ut( A, C )} &
+Melissa Mendez, Irene Jiang
 \\ \hline	
 	\end{tabular}
 \end{center}
@@ -244,36 +245,36 @@ $ C := A^T A + C $ & $ C $ symmetric, stored in upper-triangular part &
 			{\tt Syr2k\_un( A, B, C )} &
 			\\ \hline
 			$ C := A^T B + B^T A  + C $ & $ C $ symmetric, stored in lower-triangular part &
-			{\tt Syr2k\_lt( A, B, C )} &
+			{\tt Syr2k\_lt( A, B, C )} & Abhilash Chilakamarthi
 			\\ \hline
 			$ C := A^T B + B^T A  + C $ & $ C $ symmetric, stored in upper-triangular part &
-			{\tt Syr2k\_ut( A, B, C )} &
+			{\tt Syr2k\_ut( A, B, C )} & Dennis Stasaski, Mridhul Maddela
 			\\ \whline
 			\multicolumn{4}{|l|}{Triangular matrix-matrix multiplication} \\ 		\hline	
 			$ B := L^T B $ & $ L $ stored in lower triangle &
-			{\tt Trmm\_lltn( A, B )} & 
+			{\tt Trmm\_lltn( A, B )} & Aditya Palnitkar, Jamie Xia, Vignesh Kumar
 			\\ \hline
 			$ B := U B $ & $ U $ stored in upper triangle &
-			{\tt Trmm\_lunn( A, B )} &
+			{\tt Trmm\_lunn( A, B )} & Jaydeep Singh, Jonas Wechsler
 			\\ \hline			
 			$ B := U^T B $ & $ U $ stored in upper triangle &
-			{\tt Trmm\_lutn( A, B )} & 
+			{\tt Trmm\_lutn( A, B )} &  Ahmed Al Nabil, Abhiram Ilindra
 			\\ \hline
 			$ B :=  B  L $ & $ L $ stored in lower triangle &
-			{\tt Trmm\_rlnn( A, B )} & 
+			{\tt Trmm\_rlnn( A, B )} & Ted Wong, Cameron Reynoldson
 			\\ \hline
 			$ B := B L^T $ & $ L $ stored in lower triangle &
-			{\tt Trmm\_rltn( A, B )} & 
+			{\tt Trmm\_rltn( A, B )} & Juan Manuel Penaranda Ortiz, Derek Tolliver
 			\\ \hline
 			$ B := B U $ & $ U $ stored in upper triangle &
-			{\tt Trmm\_runn( A, B )} &
+			{\tt Trmm\_runn( A, B )} & Shannon Yap, Vinay Valsaraj, Po-Chen Wu
 			\\ \hline			
 			$ B := B U^T $ & $ U $ stored in upper triangle &
 			{\tt Trmm\_rutn( A, B )} &
 			\\ \whline	
 			\multicolumn{4}{|l|}{Triangular-triangular matrix multiplication}\\ \hline
 			$ B := L U $ & $ L $ lower triangular, $ U $ upper triangular &
-			{\tt Trtrmm\_lunn( L, U, B )} & 
+			{\tt Trtrmm\_lunn( L, U, B )} &  Cristina Anderson, Adam Leslie
 			\\ \hline
 			$ B := U L $ & $ L $ lower triangular, $ U $ upper triangular &
 			{\tt Trtrmm\_ulnn( U, L, B )} &
