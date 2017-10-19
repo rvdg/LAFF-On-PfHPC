@@ -1,0 +1,19 @@
+To get your project started:
+
+Look at book.pdf and look up what project has been assigned to your group.
+
+- In this directory, copy "MyProject.tex" into a file that identifies your project.  So, if I am working on symm_l (see assignment I would do "cp MyProject.tex SYMM_L.tex".  
+
+- Copy the subdirectory trmm_llnn to a directory that identifies your operation.  Let's say you are working on symm_l, then you would do  "cp -r trmm_llnn symm_l".  This gives you a bunch of templates to work with.
+
+- Go into this directory that you just created and change the file trmm_llnn.tex to something consistent with your operation.  In the example we are using, we'd do "mv trmm_llnn.tex symm_l.tex".
+
+- In your equivalent of the file SYMM_L.tex change the line "input trmm_llnn/trmm_llnn" to the obvious.  "input symm_l/symm_l" in our example.
+
+- Now, you can use your favorite LaTeX tool to typeset.  For example, open the file SYMM_L.tex and then hit the "run" button.
+
+- In your equivalent of the file "symm_l/symm_l.tex" you will want to change every occurance of "trmm_llnn" to the equivalent for your operations.  Then you go and you make the obvious modifications related to your operation.
+
+- Next, find PMEs, loop-invariants, implement, and go crazy!
+
+
