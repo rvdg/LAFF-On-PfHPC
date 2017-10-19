@@ -1,6 +1,6 @@
 #include "FLAME.h"
 
-int ltrmm_llnn_unb_var1( FLA_Obj L, FLA_Obj B )
+int trmm_llnn_unb_var1( FLA_Obj L, FLA_Obj B )
 {
   FLA_Obj LTL,   LTR,      L00,  l01,      L02, 
           LBL,   LBR,      l10t, lambda11, l12t,
