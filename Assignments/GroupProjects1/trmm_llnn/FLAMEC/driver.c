@@ -46,9 +46,9 @@ int main(int argc, char *argv[])
 
     /* Allocate space for the matrices and vectors */
     FLA_Obj_create( FLA_DOUBLE, n, n, 1, n, &Lobj );
-    FLA_Obj_create( FLA_DOUBLE, n, 1, 1, n, &Bobj );
-    FLA_Obj_create( FLA_DOUBLE, n, 1, 1, n, &Bold );
-    FLA_Obj_create( FLA_DOUBLE, n, 1, 1, n, &Bref );
+    FLA_Obj_create( FLA_DOUBLE, n, n, 1, n, &Bobj );
+    FLA_Obj_create( FLA_DOUBLE, n, n, 1, n, &Bold );
+    FLA_Obj_create( FLA_DOUBLE, n, n, 1, n, &Bref );
 
     /* Generate random matrix A, and vectors x, and y */
     FLA_Random_matrix( Lobj );
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
       dtime = FLA_Clock();
  
       /* Comment out the below call and call your routine instead */
-      FLA_Trmm( FLA_LEFT, FLA_LOWER_TRIANGULAR, FLA_NO_TRANSPOSE, FLA_NONUNIT_DIAG, FLA_ONE, Lobj, Bref );
+      //      FLA_Trmm( FLA_LEFT, FLA_LOWER_TRIANGULAR, FLA_NO_TRANSPOSE, FLA_NONUNIT_DIAG, FLA_ONE, Lobj, Bobj );
       trmm_llnn_unb_var1( Lobj, Bobj );
 
       /* stop clock */
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
     diff = FLA_Max_elemwise_diff( Bobj, Bref );
   
-    printf( "data_unb_var2( %d, 1:3 ) = [ %d %le %le];\n", i, n,
+    printf( "data_unb_var1( %d, 1:3 ) = [ %d %le %le];\n", i, n,
 	    dtime_best, diff  );
 
     fflush( stdout );
