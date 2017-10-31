@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE
 #include <stdlib.h>
 
 #define A( i,j ) *( ap + (j)*lda + (i) )          // map A( i,j )    to array ap    in column-major order
