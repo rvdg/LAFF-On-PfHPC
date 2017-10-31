@@ -1,17 +1,18 @@
 #HOME      := /Users/rvdg
+# Make sure you have BLIS installed in your home directory.
 BLAS_LIB  := $(HOME)/blis/lib/libblis.a
 BLAS_INC  := $(HOME)/blis/include/blis
 
 # indicate how the object files are to be created
 CC         := gcc
 LINKER     := $(CC)
-CFLAGS     := -O2 -Wall -I$(BLAS_INC) -m64 -msse3 -std=c99 -D_POSIX_C_SOURCE=200112L
+CFLAGS     := -O2 -Wall -I$(BLAS_INC) -m64 -msse3 -std=c99 -march=native -D_POSIX_C_SOURCE=200112L
 FFLAGS     := $(CFLAGS) 
 
 # set the range of experiments to be performed
 NREPEATS   := 3#       number of times each experiment is repeated.  The best time is reported.
 NFIRST     := 32#     smallest size to be timed.
-NLAST      := 500#     largest size to be timed.
+NLAST      := 3000#     largest size to be timed.
 NINC       := 32#     increment between sizes.
 
 LDFLAGS    := -lpthread -m64 -lm 
@@ -25,6 +26,7 @@ TEST_OBJS_IPJ_AXPY     := driver_GemmIPJ_Axpy.o GemmIPJ_Axpy.o Axpy.o
 TEST_OBJS_GERJI_AXPY   := driver_GerJI_Axpy.o GerJI_Axpy.o Axpy.o
 TEST_OBJS_GEMMJPI_GEMV := driver_GemmJPI_Gemv.o GemmJPI_Gemv.o GemvJI_Axpy.o Axpy.o
 TEST_OBJS_GEMMPJI_GER  := driver_GemmPJI_Ger.o GemmPJI_Ger.o GerJI_Axpy.o Axpy.o
+TEST_OBJS_GEMMJI_INT   := driver_GemmJI_IntrinsicsKernel.o GemmJI_IntrinsicsKernel.o GemmIntrinsicsKernel_m4xn4.o
 
 # $%.o: %.c
 #	$(CC) $(CFLAGS) -c $< -o $n@
@@ -72,6 +74,12 @@ driver_GemmPJI_Ger.x: $(TEST_OBJS_GEMMPJI_GER) $(UTIL_OBJS)
 
 test_GemmPJI_Ger: driver_GemmPJI_Ger.x
 	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmPJI_Ger.x > output_data_GemmPJI_Ger.m
+
+driver_GemmJI_IntrinsicsKernel.x: $(TEST_OBJS_GEMMJI_INT) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_GEMMJI_INT) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmJI_IntrinsicsKernel.x $(LDFLAGS) 
+
+test_GemmJI_IntrinsicsKernel: driver_GemmJI_IntrinsicsKernel.x
+	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmJI_IntrinsicsKernel.x > output_data_GemmJI_IntrinsicsKernel.m
 
 
 clean:
