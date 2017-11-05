@@ -42,7 +42,6 @@ void GemmLoopFive( int m, int n, int k, double *A, int ldA,
 {
   for ( int j=0; j<n; j+=NC ) {
     int jb = min( NC, n-j );    /* Last loop may not involve a full block */
-
     GemmLoopFour( m, jb, k, A, ldA, &beta( 0,j ), ldB, &gamma( 0,j ), ldC );
   }
 }
@@ -50,47 +49,43 @@ void GemmLoopFive( int m, int n, int k, double *A, int ldA,
 void GemmLoopFour( int m, int n, int k, double *A, int ldA,
 		   double *B, int ldB, double *C, int ldC )
 {
-  double *PackedPanelB = ( double * ) malloc( KC * NC * sizeof( double ) );
+  double *Btilde = ( double * ) malloc( KC * NC * sizeof( double ) );
   
   for ( int p=0; p<k; p+=KC ) {
     int pb = min( KC, k-p );    /* Last loop may not involve a full block */
-
-    PackPanelB_KCxNC( pb, n, &beta( p, 0 ), ldB, PackedPanelB );
-    GemmLoopThree( m, n, pb, &alpha( 0, p ), ldA, PackedPanelB, C, ldC );
+    PackPanelB_KCxNC( pb, n, &beta( p, 0 ), ldB, Btilde );
+    GemmLoopThree( m, n, pb, &alpha( 0, p ), ldA, Btilde, C, ldC );
   }
 }
 
 void GemmLoopThree( int m, int n, int k, double *A, int ldA,
-		   double *PackedPanelB, double *C, int ldC )
+		   double *Btilde, double *C, int ldC )
 {
-  double *PackedBlockA = ( double * ) malloc( MC * KC * sizeof( double ) );
+  double *Atilde = ( double * ) malloc( MC * KC * sizeof( double ) );
   
   for ( int i=0; i<m; i+=MC ) {
     int ib = min( MC, m-i );    /* Last loop may not involve a full block */
-    
-    PackBlockA_MCxKC( ib, k, &alpha( i, 0 ), ldA, PackedBlockA );
+    PackBlockA_MCxKC( ib, k, &alpha( i, 0 ), ldA, Atilde );
 
-    GemmLoopTwo( ib, n, k, PackedBlockA, PackedPanelB, &gamma( i,0 ), ldC );
+    GemmLoopTwo( ib, n, k, Atilde, Btilde, &gamma( i,0 ), ldC );
   }
 }
 
-void GemmLoopTwo( int m, int n, int k, double *PackedBlockA, 
-		  double *PackedPanelB, double *C, int ldC )
+void GemmLoopTwo( int m, int n, int k, double *Atilde, 
+		  double *Btilde, double *C, int ldC )
 {
   for ( int j=0; j<n; j+=NR ) {
     int jb = min( NR, n-j );
-
-    GemmLoopOne( m, jb, k, PackedBlockA, &PackedPanelB[ j*k ], &gamma( 0,j ), ldC );
+    GemmLoopOne( m, jb, k, Atilde, &Btilde[ j*k ], &gamma( 0,j ), ldC );
   }
 }
 
-void GemmLoopOne( int m, int n, int k, double *PackedBlockA, 
+void GemmLoopOne( int m, int n, int k, double *Atilde, 
 		  double *MicroPanelB, double *C, int ldC )
 {
   for ( int i=0; i<m; i+=MR ) {
     int ib = min( MR, m-i );
-    
-    MicroKernel_MRxNR( ib, n, k, &PackedBlockA[ i*k ], MicroPanelB, &gamma( i,0 ), ldC );
+    MicroKernel_MRxNR( ib, n, k, &Atilde[ i*k ], MicroPanelB, &gamma( i,0 ), ldC );
   }
 }
 
