@@ -1,8 +1,13 @@
+#include <stdio.h>
+
 #define alpha( i,j ) A[ (j)*ldA + (i) ]   // map alpha( i,j ) to array A
 #define beta( i,j )  B[ (j)*ldB + (i) ]   // map beta( i,j )  to array B
 
+#define min( x, y ) ( ( x ) < ( y ) ? x : y )
+
 #define MR 4
-#define MC 4
+#define NR 4
+#define MC 128
 #define KC 128
 
 void PackMicroPanelA_MRxKC( int m, int k, double *A, int ldA, double *Atilde )
@@ -24,15 +29,15 @@ void PackMicroPanelA_MRxKC( int m, int k, double *A, int ldA, double *Atilde )
     }
 }
 
-void PackBlockA_MCxKC( int m, k, double *A, int ldA, double *Atilde )
-/* Pack a MC x KC block of A.  MC is assumed to be a multiple of MR.  The block is 
-   packed into Atilde a micro-panel at a time. If necessary, the last micro-panel 
+void PackBlockA_MCxKC( int m, int k, double *A, int ldA, double *Atilde )
+/* Pack a MC x KC block of A.  MC is assumed to be a multiple of MR.  The block is packed into Atilde a micro-panel at a time. If necessary, the last micro-panel 
    is padded with rows of zeroes. */
 {
-  for ( int i=0; i<m; i+= MR ){
+  for ( int i=0; i<m; i+=MR ){
     int ib = min( MR, m-i );
+
     PackMicroPanelA_MRxKC( ib, k, &alpha( i, 0 ), ldA, Atilde );
-    Atilde += ib * k;
+    Atilde += MR * k;
   }
 }
 
@@ -55,7 +60,7 @@ void PackMicroPanelB_KCxNR( int k, int n, double *B, int ldB, double *Btilde )
     }
 }
 
-void PackPanelB_KCxNC( int k, n, double *B, int ldB, double *Btilde )
+void PackPanelB_KCxNC( int k, int n, double *B, int ldB, double *Btilde )
 /* Pack a KC x NC panel of B.  NC is assumed to be a multiple of NR.  The block is 
    packed into Btilde a micro-panel at a time. If necessary, the last micro-panel 
    is padded with columns of zeroes. */
