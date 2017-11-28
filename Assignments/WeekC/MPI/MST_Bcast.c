@@ -1,5 +1,7 @@
 #include <mpi.h>
 
+int MST_Bcast_aux( void *, int, MPI_Datatype, int, MPI_Comm, int, int );
+
 int MST_Bcast( void *buf, int count, MPI_Datatype datatype, int root, MPI_Comm comm )
 {
   int nprocs;
