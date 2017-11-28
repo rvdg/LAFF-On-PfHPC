@@ -16,7 +16,7 @@ UTIL_OBJS  :=
 # ---------------------
 
 HelloWorld:	HelloWorld.c
-	$(MPICC) $(CFLAGS) HelloWorld.c -o HelloWorld.x
+	mpicc HelloWorld.c -o HelloWorld.x
 	./HelloWorld.x
 
 # ---------------------
