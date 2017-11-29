@@ -1,14 +1,11 @@
 #include <mpi.h>
-#include <stdio.h>
-
 int MST_Scatterx_aux( int *, int *, int, MPI_Comm, int, int );
 
-  int MST_Scatterx( int *buf, int *displs, int root, MPI_Comm comm)
+int MST_Scatterx( int *buf, int *displs, int root, MPI_Comm comm)
 {
   int nprocs;
 
   MPI_Comm_size( MPI_COMM_WORLD, &nprocs );
-
   MST_Scatterx_aux( buf, displs, root, comm, 0, nprocs-1 );
 }
 
