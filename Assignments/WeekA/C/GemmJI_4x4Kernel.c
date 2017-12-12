@@ -5,11 +5,9 @@
 #define MR 4
 #define NR 4
 
-void GemmIntrinsicsKernel_m4xn4( int  , double *, int ,
-                                        double *, int ,
-                                        double *, int );
+void Gemm_4x4Kernel( int, double *, int, double *, int, double *, int );
 
-void GemmJI_IntrinsicsKernel( int m, int n, int k,
+void GemmJI_4x4Kernel( int m, int n, int k,
                               double *A, int ldA,
                               double *B, int ldB,
                               double *C, int ldC )
@@ -18,7 +16,7 @@ void GemmJI_IntrinsicsKernel( int m, int n, int k,
 
   for ( int j=0; j<n; j+=NR ) /* n is assumed to be a multiple of NR */
     for ( int i=0; i<m; i+=MR ) /* m is assumed to be a multiple of MR */
-      GemmIntrinsicsKernel_m4xn4
+      Gemm_4x4Kernel
         ( k, &alpha( i,0 ), ldA, &beta( 0,j ), ldB, &gamma( i,j ), ldC );
   
   return;

@@ -6,7 +6,7 @@ void Dots( int n, double *x, int incx, double *y, int incy, double *gamma )
   int i;
 
   for ( i=0; i<n; i++ )
-    *gamma = chi( i ) * psi( i ) + *gamma;
+    *gamma += chi( i ) * psi( i );
   
   return;
 }

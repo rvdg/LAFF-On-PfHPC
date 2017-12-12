@@ -11,76 +11,88 @@ FFLAGS     := $(CFLAGS)
 
 # set the range of experiments to be performed
 NREPEATS   := 3#       number of times each experiment is repeated.  The best time is reported.
-NFIRST     := 32#     smallest size to be timed.
-NLAST      := 3000#     largest size to be timed.
-NINC       := 32#     increment between sizes.
+NFIRST     := 24#     smallest size to be timed.
+NLAST_SMALL:= 500#    largest size to be timed for slow implementations.
+NLAST      := 1500#   largest size to be timed for fast implementations.
+NINC       := 24#     increment between sizes.
 
 LDFLAGS    := -lpthread -m64 -lm 
 
 UTIL_OBJS  := FLA_Clock.o MaxAbsDiff.o RandomMatrix.o
 
-TEST_OBJS_GEMMIJP      := driver_GemmIJP.o GemmIJP.o 
-TEST_OBJS_GEMMALL      := driver_GemmAll.o GemmIJP.o GemmJIP.o GemmIPJ.o GemmPIJ.o GemmJPI.o GemmPJI.o
-TEST_OBJS_AXPY         := driver_Axpy.o Axpy.o
-TEST_OBJS_IPJ_AXPY     := driver_GemmIPJ_Axpy.o GemmIPJ_Axpy.o Axpy.o
-TEST_OBJS_GERJI_AXPY   := driver_GerJI_Axpy.o GerJI_Axpy.o Axpy.o
-TEST_OBJS_GEMMJPI_GEMV := driver_GemmJPI_Gemv.o GemmJPI_Gemv.o GemvJI_Axpy.o Axpy.o
-TEST_OBJS_GEMMPJI_GER  := driver_GemmPJI_Ger.o GemmPJI_Ger.o GerJI_Axpy.o Axpy.o
-TEST_OBJS_GEMMJI_INT   := driver_GemmJI_IntrinsicsKernel.o GemmJI_IntrinsicsKernel.o GemmIntrinsicsKernel_m4xn4.o
+# ---------------------
 
-# $%.o: %.c
-#	$(CC) $(CFLAGS) -c $< -o $n@
-# $%.o: %.f
-#	$(FC) $(FFLAGS) -c $< -o $@
+TEST_OBJS_IJP := driver.o Gemm_IJP.o
 
-driver_GemmIJP.x: $(TEST_OBJS_GEMMIJP) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_GEMMIJP) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmIJP.x $(LDFLAGS) 
+driver_IJP.x: $(TEST_OBJS_IJP) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_IJP) $(UTIL_OBJS) $(BLAS_LIB) -o driver_IJP.x $(LDFLAGS) 
 
-test_GemmIJP:   driver_GemmIJP.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmIJP.x > output_data_GemmIJP.m
+test_IJP: driver_IJP.x
+	echo "your_version = 'IJP';" > output_IJP.m
+	echo " " >> output_IJP.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_IJP.x >> output_IJP.m
 
-driver_GemmAll.x: $(TEST_OBJS_GEMMALL) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_GEMMALL) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmAll.x $(LDFLAGS) 
+# ---------------------
 
-test_GemmAll: driver_GemmAll.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmAll.x > output_data_GemmAll.m
+TEST_OBJS_IPJ := driver.o Gemm_IPJ.o
 
-driver_Axpy.x: $(TEST_OBJS_AXPY) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_AXPY) $(UTIL_OBJS) $(BLAS_LIB) -o driver_Axpy.x $(LDFLAGS) 
+driver_IPJ.x: $(TEST_OBJS_IPJ) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_IPJ) $(UTIL_OBJS) $(BLAS_LIB) -o driver_IPJ.x $(LDFLAGS) 
 
-test_Axpy: driver_Axpy.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_Axpy.x > output_data_Axpy.m
+test_IPJ: driver_IPJ.x
+	echo "your_version = 'IPJ';" > output_IPJ.m
+	echo " " >> output_IPJ.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_IPJ.x >> output_IPJ.m
 
-driver_GemmIPJ_Axpy.x: $(TEST_OBJS_IPJ_AXPY) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_IPJ_AXPY) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmIPJ_Axpy.x $(LDFLAGS) 
+# ---------------------
 
-test_GemmIPJ_Axpy: driver_GemmIPJ_Axpy.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmIPJ_Axpy.x > output_data_GemmIPJ_Axpy.m
+TEST_OBJS_JIP := driver.o Gemm_JIP.o
 
-driver_GerJI_Axpy.x: $(TEST_OBJS_GERJI_AXPY) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_GERJI_AXPY) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GerJI_Axpy.x $(LDFLAGS) 
+driver_JIP.x: $(TEST_OBJS_JIP) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_JIP) $(UTIL_OBJS) $(BLAS_LIB) -o driver_JIP.x $(LDFLAGS) 
 
-test_GerJI_Axpy: driver_GerJI_Axpy.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GerJI_Axpy.x > output_data_GerJI_Axpy.m
+test_JIP: driver_JIP.x
+	echo "your_version = 'JIP';" > output_JIP.m
+	echo " " >> output_JIP.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JIP.x >> output_JIP.m
 
-driver_GemmJPI_Gemv.x: $(TEST_OBJS_GEMMJPI_GEMV) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_GEMMJPI_GEMV) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmJPI_Gemv.x $(LDFLAGS) 
+# ---------------------
 
-test_GemmJPI_Gemv: driver_GemmJPI_Gemv.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmJPI_Gemv.x > output_data_GemmJPI_Gemv.m
+TEST_OBJS_JPI := driver.o Gemm_JPI.o
 
-driver_GemmPJI_Ger.x: $(TEST_OBJS_GEMMPJI_GER) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_GEMMPJI_GER) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmPJI_Ger.x $(LDFLAGS) 
+driver_JPI.x: $(TEST_OBJS_JPI) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_JPI) $(UTIL_OBJS) $(BLAS_LIB) -o driver_JPI.x $(LDFLAGS) 
 
-test_GemmPJI_Ger: driver_GemmPJI_Ger.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmPJI_Ger.x > output_data_GemmPJI_Ger.m
+test_JPI: driver_JPI.x
+	echo "your_version = 'JPI';" > output_JPI.m
+	echo " " >> output_JPI.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JPI.x >> output_JPI.m
 
-driver_GemmJI_IntrinsicsKernel.x: $(TEST_OBJS_GEMMJI_INT) $(UTIL_OBJS)
-	$(LINKER) $(TEST_OBJS_GEMMJI_INT) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmJI_IntrinsicsKernel.x $(LDFLAGS) 
+# ---------------------
 
-test_GemmJI_IntrinsicsKernel: driver_GemmJI_IntrinsicsKernel.x
-	echo "$(NREPEATS) $(NFIRST) $(NLAST) $(NINC)" | ./driver_GemmJI_IntrinsicsKernel.x > output_data_GemmJI_IntrinsicsKernel.m
+TEST_OBJS_PIJ := driver.o Gemm_PIJ.o
 
+driver_PIJ.x: $(TEST_OBJS_PIJ) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_PIJ) $(UTIL_OBJS) $(BLAS_LIB) -o driver_PIJ.x $(LDFLAGS) 
+
+test_PIJ: driver_PIJ.x
+	echo "your_version = 'PIJ';" > output_PIJ.m
+	echo " " >> output_PIJ.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_PIJ.x >> output_PIJ.m
+
+# ---------------------
+
+TEST_OBJS_JPI := driver.o Gemm_JPI.o
+
+driver_JPI.x: $(TEST_OBJS_JPI) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_JPI) $(UTIL_OBJS) $(BLAS_LIB) -o driver_JPI.x $(LDFLAGS) 
+
+test_JPI: driver_JPI.x
+	echo "your_version = 'JPI';" > output_JPI.m
+	echo " " >> output_JPI.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JPI.x >> output_JPI.m
+
+# ---------------------
 
 clean:
 	rm -f *.o *~ core *.x output_data_*.m *.pdf
