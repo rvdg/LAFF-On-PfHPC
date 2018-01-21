@@ -19,13 +19,9 @@ void Gemm_JIP( int m, int n, int k,
                double *B, int ldB,
                double *C, int ldC )
 {
-  int i, j, p;
-
-  for ( j=0; j<n; j++ )
-    for ( i=0; i<m; i++ )
-      for ( p=0; p<k; p++ )
+  for ( int j=0; j<n; j++ )
+    for ( int i=0; i<m; i++ )
+      for ( int p=0; p<k; p++ )
         gamma( i,j ) += alpha( i,p ) * beta( p,j );
-
-  return;
 }
   
