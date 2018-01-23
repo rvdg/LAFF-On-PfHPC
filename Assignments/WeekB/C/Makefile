@@ -33,6 +33,7 @@ test_JI_4x4Kernel: driver_JI_4x4Kernel.x
 	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JI_4x4Kernel.x >> output_JI_4x4Kernel.m
 
 # ---------------------
+
 TEST_OBJS_IJP := driver.o Gemm_JI_8x4Kernel.o
 
 driver_JI_8x4Kernel.x: $(TEST_OBJS_IJP) $(UTIL_OBJS)
@@ -42,6 +43,18 @@ test_JI_8x4Kernel: driver_JI_8x4Kernel.x
 	echo "your_version = 'JI\_8x4Kernel';" > output_JI_8x4Kernel.m
 	echo " " >> output_JI_8x4Kernel.m
 	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JI_8x4Kernel.x >> output_JI_8x4Kernel.m
+
+# ---------------------
+
+TEST_OBJS_IJP := driver.o Gemm_JI_12x4Kernel.o
+
+driver_JI_12x4Kernel.x: $(TEST_OBJS_IJP) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_IJP) $(UTIL_OBJS) $(BLAS_LIB) -o driver_JI_12x4Kernel.x $(LDFLAGS) 
+
+test_JI_12x4Kernel: driver_JI_12x4Kernel.x
+	echo "your_version = 'JI\_12x4Kernel';" > output_JI_12x4Kernel.m
+	echo " " >> output_JI_12x4Kernel.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JI_12x4Kernel.x >> output_JI_12x4Kernel.m
 
 # ---------------------
 
