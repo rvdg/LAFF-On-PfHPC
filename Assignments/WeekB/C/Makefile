@@ -58,5 +58,17 @@ test_JI_12x4Kernel: driver_JI_12x4Kernel.x
 
 # ---------------------
 
+TEST_OBJS_IJP := driver.o Gemm_JI_8x6Kernel.o
+
+driver_JI_8x6Kernel.x: $(TEST_OBJS_IJP) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_IJP) $(UTIL_OBJS) $(BLAS_LIB) -o driver_JI_8x6Kernel.x $(LDFLAGS) 
+
+test_JI_8x6Kernel: driver_JI_8x6Kernel.x
+	echo "your_version = 'JI\_8x6Kernel';" > output_JI_8x6Kernel.m
+	echo " " >> output_JI_8x6Kernel.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_JI_8x6Kernel.x >> output_JI_8x6Kernel.m
+
+# ---------------------
+
 clean:
 	rm -f *.o *~ core *.x output_data_*.m *.pdf
