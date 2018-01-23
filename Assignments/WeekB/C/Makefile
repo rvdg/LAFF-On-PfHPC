@@ -70,5 +70,17 @@ test_JI_8x6Kernel: driver_JI_8x6Kernel.x
 
 # ---------------------
 
+TEST_OBJS_IJP := driver.o GemmFiveLoops_12x4.o
+
+driver_GemmFiveLoops_12x4.x: $(TEST_OBJS_IJP) $(UTIL_OBJS)
+	$(LINKER) $(TEST_OBJS_IJP) $(UTIL_OBJS) $(BLAS_LIB) -o driver_GemmFiveLoops_12x4.x $(LDFLAGS) 
+
+test_FiveLoops_12x4: driver_GemmFiveLoops_12x4.x
+	echo "your_version = 'GemmFiveLoops\_12x4';" > output_FiveLoops_12x4.m
+	echo " " >> output_FiveLoops_12x4.m
+	echo "$(NREPEATS) $(NFIRST) $(NLAST_SMALL) $(NINC)" | ./driver_GemmFiveLoops_12x4.x >> output_FiveLoops_12x4.m
+
+# ---------------------
+
 clean:
 	rm -f *.o *~ core *.x output_data_*.m *.pdf
