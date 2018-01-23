@@ -14,22 +14,22 @@
 #define NR 4
 
 void LoopFive( int, int, int, double *, int, double *, int, double *, int );
-void LoopFour( int, int, int, double *, int, double *, double *, int, double *, double *, int );
-void LoopThree( int, int, int, double *, int, double *, double *, double *, int );
+void LoopFour( int, int, int, double *, int, double *, int,  double *, int );
+void LoopThree( int, int, int, double *, int, double *,  double *, int );
 void LoopTwo( int, int, int, double *, double *, double *, int );
 void LoopOne( int, int, int, double *, double *, double *, int );
-void MicroKernel_MRxNR( int, int, int, double *, double *, double *, int );
+void Gemm_12x4Kernel_Packed( int, double *, double *, double *, int );
 void PackBlockA_MCxKC( int, int, double *, int, double * );
 void PackPanelB_KCxNC( int, int, double *, int, double * );
   
-void GemmFiveLoops( int m, int n, int k, double *A, int ldA,
-		   double *B, int ldB, double *C, int ldC )
+void GemmWrapper( int m, int n, int k, double *A, int ldA,
+		  double *B, int ldB, double *C, int ldC )
 {
   if ( m % MR != 0 || MC % MR != 0 ){
     printf( "m and MC must be multiples of MR\n" );
     exit( 0 );
   }
-  if ( n % NR != 0 || NC % MR != 0 ){
+  if ( n % NR != 0 || NC % NR != 0 ){
     printf( "n and NC must be multiples of NR\n" );
     exit( 0 );
   }
@@ -40,34 +40,38 @@ void GemmFiveLoops( int m, int n, int k, double *A, int ldA,
 void LoopFive( int m, int n, int k, double *A, int ldA,
 		   double *B, int ldB, double *C, int ldC )
 {
-  double *Atilde = ( double * ) malloc( MC * KC * sizeof( double ) );
-  double *Btilde = ( double * ) malloc( KC * NC * sizeof( double ) );
-
   for ( int j=0; j<n; j+=NC ) {
     int jb = min( NC, n-j );    /* Last loop may not involve a full block */
-    LoopFour( m, jb, k, A, ldA, Atilde &beta( 0,j ), ldB, Btilde, &gamma( 0,j ), ldC );
+    LoopFour( m, jb, k, A, ldA, &beta( 0,j ), ldB, &gamma( 0,j ), ldC );
   }
 }
 
-void LoopFour( int m, int n, int k, double *A, int ldA, double *Atilde,
-	       double *B, int ldB, double *Btilde, double *C, int ldC )
+void LoopFour( int m, int n, int k, double *A, int ldA, 
+	       double *B, int ldB, double *C, int ldC )
 {
+  double *Btilde = ( double * ) malloc( KC * NC * sizeof( double ) );
+
   for ( int p=0; p<k; p+=KC ) {
     int pb = min( KC, k-p );    /* Last loop may not involve a full block */
     PackPanelB_KCxNC( pb, n, &beta( p, 0 ), ldB, Btilde );
     LoopThree( m, n, pb, &alpha( 0, p ), ldA, Btilde, C, ldC );
   }
+
+  free( Btilde); 
 }
 
-void LoopThree( int m, int n, int k, double *A, int ldA, double *Atilde,
+void LoopThree( int m, int n, int k, double *A, int ldA, 
 		double *Btilde, double *C, int ldC )
 {
+  double *Atilde = ( double * ) malloc( MC * KC * sizeof( double ) );
+
   for ( int i=0; i<m; i+=MC ) {
     int ib = min( MC, m-i );    /* Last loop may not involve a full block */
     PackBlockA_MCxKC( ib, k, &alpha( i, 0 ), ldA, Atilde );
-
     LoopTwo( ib, n, k, Atilde, Btilde, &gamma( i,0 ), ldC );
   }
+
+  free( Atilde);
 }
 
 void LoopTwo( int m, int n, int k, double *Atilde, double *Btilde, double *C, int ldC )
@@ -81,8 +85,8 @@ void LoopTwo( int m, int n, int k, double *Atilde, double *Btilde, double *C, in
 void LoopOne( int m, int n, int k, double *Atilde, double *MicroPanelB, double *C, int ldC )
 {
   for ( int i=0; i<m; i+=MR ) {
-    int ib = min( MR, m-i );
-    MicroKernel_MRxNR( ib, n, k, &Atilde[ i*k ], MicroPanelB, &gamma( i,0 ), ldC );
+    //    int ib = min( MR, m-i );
+    Gemm_12x4Kernel_Packed( k, &Atilde[ i*k ], MicroPanelB, &gamma( i,0 ), ldC );
   }
 }
 
@@ -105,7 +109,7 @@ void PackMicroPanelA_MRxKC( int m, int k, double *A, int ldA, double *Atilde )
     }
 }
 
-void PackBlockA_MCxKC( int m, k, double *A, int ldA, double *Atilde )
+void PackBlockA_MCxKC( int m, int k, double *A, int ldA, double *Atilde )
 /* Pack a MC x KC block of A.  MC is assumed to be a multiple of MR.  The block is 
    packed into Atilde a micro-panel at a time. If necessary, the last micro-panel 
    is padded with rows of zeroes. */
@@ -136,7 +140,7 @@ void PackMicroPanelB_KCxNR( int k, int n, double *B, int ldB, double *Btilde )
     }
 }
 
-void PackPanelB_KCxNC( int k, n, double *B, int ldB, double *Btilde )
+void PackPanelB_KCxNC( int k, int n, double *B, int ldB, double *Btilde )
 /* Pack a KC x NC panel of B.  NC is assumed to be a multiple of NR.  The block is 
    packed into Btilde a micro-panel at a time. If necessary, the last micro-panel 
    is padded with columns of zeroes. */
@@ -151,29 +155,29 @@ void PackPanelB_KCxNC( int k, n, double *B, int ldB, double *Btilde )
 
 #include<immintrin.h>
 
-void GemmIntrinsicsKernel_MRxNR( int m, int n, int k,
+void Gemm_12x4Kernel_Packed( int k,
 		        double *BlockA, double *PanelB, double *C, int ldC )
 {
   __m256d gamma_0123_0 = _mm256_loadu_pd( &gamma( 0,0 ) );
   __m256d gamma_0123_1 = _mm256_loadu_pd( &gamma( 0,1 ) );
   __m256d gamma_0123_2 = _mm256_loadu_pd( &gamma( 0,2 ) );
   __m256d gamma_0123_3 = _mm256_loadu_pd( &gamma( 0,3 ) );
-  __m256d gamma_4567_0 = _mm256_loadu_pd( &gamma( 0,4 ) );
-  __m256d gamma_4567_1 = _mm256_loadu_pd( &gamma( 0,5 ) );
-  __m256d gamma_4567_2 = _mm256_loadu_pd( &gamma( 0,6 ) );
-  __m256d gamma_4567_3 = _mm256_loadu_pd( &gamma( 0,7 ) );
-  __m256d gamma_891011_0 = _mm256_loadu_pd( &gamma( 0,8 ) );
-  __m256d gamma_891011_1 = _mm256_loadu_pd( &gamma( 0,9 ) );
-  __m256d gamma_891011_2 = _mm256_loadu_pd( &gamma( 0,10 ) );
-  __m256d gamma_891011_3 = _mm256_loadu_pd( &gamma( 0,11 ) );
+  __m256d gamma_4567_0 = _mm256_loadu_pd( &gamma( 4,0 ) );
+  __m256d gamma_4567_1 = _mm256_loadu_pd( &gamma( 4,1 ) );
+  __m256d gamma_4567_2 = _mm256_loadu_pd( &gamma( 4,2 ) );
+  __m256d gamma_4567_3 = _mm256_loadu_pd( &gamma( 4,3 ) );
+  __m256d gamma_891011_0 = _mm256_loadu_pd( &gamma( 8,0 ) );
+  __m256d gamma_891011_1 = _mm256_loadu_pd( &gamma( 8,1 ) );
+  __m256d gamma_891011_2 = _mm256_loadu_pd( &gamma( 8,2 ) );
+  __m256d gamma_891011_3 = _mm256_loadu_pd( &gamma( 8,3 ) );
 
   __m256d beta_p_j;
    	
   for ( int p=0; p<k; p++ ){
     /* load alpha( 0:11, p ) */
     __m256d alpha_0123_p = _mm256_loadu_pd( BlockA );
-    __m256d alpha_4567_p = _mm256_loadu_pd( BlockA );
-    __m256d alpha_891011_p = _mm256_loadu_pd( BlockA );
+    __m256d alpha_4567_p = _mm256_loadu_pd( BlockA+4 );
+    __m256d alpha_891011_p = _mm256_loadu_pd( BlockA+8 );
     /* load beta( p, 0 ); update gamma( 0:3, 0 ) */
     beta_p_j = _mm256_broadcast_sd( PanelB );
     gamma_0123_0 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_0 );
@@ -181,19 +185,19 @@ void GemmIntrinsicsKernel_MRxNR( int m, int n, int k,
     gamma_891011_0 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_0 );
     /* load beta( p, 1 ); update gamma( 0:3, 1 ) */
     beta_p_j = _mm256_broadcast_sd( PanelB+1 );
-    gamma_0123_0 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_0 );
-    gamma_4567_0 = _mm256_fmadd_pd( alpha_4567_p, beta_p_j, gamma_4567_0 );
-    gamma_891011_0 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_0 );
+    gamma_0123_1 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_1 );
+    gamma_4567_1 = _mm256_fmadd_pd( alpha_4567_p, beta_p_j, gamma_4567_1 );
+    gamma_891011_1 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_1 );
     /* load beta( p, 2 ); update gamma( 0:3, 2 ) */
     beta_p_j = _mm256_broadcast_sd( PanelB+2 );
-    gamma_0123_0 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_0 );
-    gamma_4567_0 = _mm256_fmadd_pd( alpha_4567_p, beta_p_j, gamma_4567_0 );
-    gamma_891011_0 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_0 );
+    gamma_0123_2 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_2 );
+    gamma_4567_2 = _mm256_fmadd_pd( alpha_4567_p, beta_p_j, gamma_4567_2 );
+    gamma_891011_2 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_2 );
     /* load beta( p, 3 ); update gamma( 0:3, 3 ) */
     beta_p_j = _mm256_broadcast_sd( PanelB+3 );
-    gamma_0123_0 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_0 );
-    gamma_4567_0 = _mm256_fmadd_pd( alpha_4567_p, beta_p_j, gamma_4567_0 );
-    gamma_891011_0 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_0 );
+    gamma_0123_3 = _mm256_fmadd_pd( alpha_0123_p, beta_p_j, gamma_0123_3 );
+    gamma_4567_3 = _mm256_fmadd_pd( alpha_4567_p, beta_p_j, gamma_4567_3 );
+    gamma_891011_3 = _mm256_fmadd_pd( alpha_891011_p, beta_p_j, gamma_891011_3 );
     BlockA += MR;
     PanelB += NR;
   }
@@ -201,7 +205,15 @@ void GemmIntrinsicsKernel_MRxNR( int m, int n, int k,
   /* Store the updated results.  This should be done more carefully since
      there may be an incomplete micro-tile. */
   _mm256_storeu_pd( &gamma(0,0), gamma_0123_0 );
+  _mm256_storeu_pd( &gamma(4,0), gamma_4567_0 );
+  _mm256_storeu_pd( &gamma(8,0), gamma_891011_0 );
   _mm256_storeu_pd( &gamma(0,1), gamma_0123_1 );
+  _mm256_storeu_pd( &gamma(4,1), gamma_4567_1 );
+  _mm256_storeu_pd( &gamma(8,1), gamma_891011_1 );
   _mm256_storeu_pd( &gamma(0,2), gamma_0123_2 );
+  _mm256_storeu_pd( &gamma(4,2), gamma_4567_2 );
+  _mm256_storeu_pd( &gamma(8,2), gamma_891011_2 );
   _mm256_storeu_pd( &gamma(0,3), gamma_0123_3 );
+  _mm256_storeu_pd( &gamma(4,3), gamma_4567_3 );
+  _mm256_storeu_pd( &gamma(8,3), gamma_891011_3 );
 }
