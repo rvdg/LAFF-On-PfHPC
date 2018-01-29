@@ -3,7 +3,6 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include<immintrin.h>
 
 #define dabs( x ) ( (x) < 0 ? -(x) : x )
 
@@ -17,6 +16,8 @@ double MaxAbsDiff( int, int, double *, int, double *, int );
 /* RandomMatrix overwrites a matrix with random values */
 void RandomMatrix( int, int, double *, int );
 
+/* Prototype for BLAS matrix-matrix multiplication routine (which we will 
+   use for the reference implementation */
 void dgemm_( char *, char *,                 // transA, transB
 	     int *, int *, int *,            // m, n, k
 	     double *, double *, int *,      // alpha, A, ldA
@@ -24,9 +25,6 @@ void dgemm_( char *, char *,                 // transA, transB
 	     double *, double *, int * );    // beta,  C, ldC
 
 /* Various constants that control what gets timed */
-
-#define TRUE 1
-#define FALSE 0
 
 /* GemmWRapper is a common interface to all the implementations we will 
    develop so we don't have to keep rewriting this driver routine. */
@@ -60,8 +58,17 @@ int main(int argc, char *argv[])
      timings.  */
   printf( "%% enter first, last, inc:" );
   scanf( "%d%d%d", &first, &last, &inc );
+
+  /* Adjust first and last so that they are multiples of inc */
+  last = ( last / inc ) * inc;
+  first = ( first / inc ) * inc;
+  first = ( first == 0 ? inc : first );
+  
   printf( "%% %d %d %d \n", first, last, inc );
 
+  printf( "data = [\n" );
+  printf( "%%  n          reference      |         current implementation \n" );
+  printf( "%%        time       GFLOPS   |    time       GFLOPS     diff \n" );
   i = 1;
   for ( size=last; size>= first; size-=inc ){
     /* we will only time cases where all three matrices are square */
@@ -85,18 +92,13 @@ int main(int argc, char *argv[])
 
        Cref will be the address where the result of computing C = A B
        + C computed with the reference implementation will be stored.
-
-       Final note: we use a special routine _mm_malloc to allocate
-       space that is aligned so that the starting address is a
-       multiple of 64.  This makes it faster to load data into vector
-       registers.
     */
 
-    A = ( double * ) _mm_malloc( ldA * k * sizeof( double ), 64 );
-    B = ( double * ) _mm_malloc( ldB * n * sizeof( double ), 64 );
-    C = ( double * ) _mm_malloc( ldC * n * sizeof( double ), 64 );
-    Cold = ( double * ) _mm_malloc( ldC * n * sizeof( double ), 64 );
-    Cref = ( double * ) _mm_malloc( ldC * n * sizeof( double ), 64 );
+    A = ( double * ) malloc( ldA * k * sizeof( double ) );
+    B = ( double * ) malloc( ldB * n * sizeof( double ) );
+    C = ( double * ) malloc( ldC * n * sizeof( double ) );
+    Cold = ( double * ) malloc( ldC * n * sizeof( double ) );
+    Cref = ( double * ) malloc( ldC * n * sizeof( double ) );
 
     /* Generate random matrix A */
     RandomMatrix( m, k, A, ldA );
@@ -135,8 +137,7 @@ int main(int argc, char *argv[])
 	dtime_best = ( dtime < dtime_best ? dtime : dtime_best );
     }
   
-    printf( "data_ref( %d, 1:3 ) = [ %d %le %le];\n",
-	    i, n, dtime_best, gflops/dtime_best );
+    printf( " %5d %8.4le %8.4le   ", n, dtime_best, gflops/dtime_best );
     fflush( stdout );  // We flush the output buffer because otherwise
 		       // it may throw the timings of a next
 		       // experiment.
@@ -165,23 +166,22 @@ int main(int argc, char *argv[])
     diff = MaxAbsDiff( m, n, C, ldC, Cref, ldC );
     maxdiff = ( diff > maxdiff ? diff : maxdiff );
     
-    printf( "data_Gemm( %d, 1:4 ) = [ %d %le %le %le];\n",
-	    i, n, dtime_best, diff, gflops/dtime_best  );
+    printf( " %8.4le %8.4le %8.4le\n", dtime_best, gflops/dtime_best, diff  );
     fflush( stdout );  // We flush the output buffer because otherwise
 		       // it may throw the timings of a next
 		       // experiment.
 
     /* Free the buffers */
-    _mm_free( A );
-    _mm_free( B );
-    _mm_free( C );
-    _mm_free( Cold );
-    _mm_free( Cref );
+    free( A );
+    free( B );
+    free( C );
+    free( Cold );
+    free( Cref );
 
     i++;
   }
-
-  printf( "\n \% Maximum difference between reference and your implementation: %le.\n", maxdiff );
+  printf( "];\n\n" );
+  printf( "%% Maximum difference between reference and your implementation: %le.\n", maxdiff );
   
   exit( 0 );
 }
